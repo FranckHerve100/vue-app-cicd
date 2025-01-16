@@ -1,26 +1,27 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
 function Avis() {
     const [avis, setAvis] = useState([]);
+
     const search = async () => {
         try {
-            const response = await fetch("http://localhost:3000/avis")
+            const response = await fetch("http://localhost:3000/avis");
             const data = await response.json();
-            setAvis(data)
+            setAvis(data);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
 
     useEffect(() => {
         search();
-    }, [])
+    }, []);
+
     return (
-        <>    
-        <div className="flex h-screen justify-center">
+        <div data-testid="avis-root" className="flex h-screen justify-center">
             <div className="grid grid-cols-3 gap-3">
                 {avis.map((unAvis) => (
-                    <article key={`${unAvis.id}`} className="bg-slate-50 text-gray-700 p-4 rounded-md">
+                    <article key={unAvis.id} className="bg-slate-50 text-gray-700 p-4 rounded-md">
                         <div className="text-xl">
                             {unAvis.avis}
                         </div>
@@ -30,10 +31,9 @@ function Avis() {
                     </article>
                 ))}
             </div>
+            <pre>{JSON.stringify(avis, null, 2)}</pre>
         </div>
-        <pre>{JSON.stringify(avis, null, 2)}</pre>
-        </>
-    )
+    );
 }
 
 export default Avis;
