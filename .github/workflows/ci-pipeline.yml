@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  PORT: 5001
+  PORT: 5173
   IMAGE_TAG: ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest  # Tag statique pour Docker
 
 jobs:
@@ -70,7 +70,7 @@ jobs:
 
       - name: Deploy Docker container locally
         run: |
-          docker run -d --name vue-app-container -p ${{ env.PORT }}:5001 ${{ env.IMAGE_TAG }}
+          docker run -d --name vue-app-container -p ${{ env.PORT }}:5173 ${{ env.IMAGE_TAG }}
   
       - name: Wait and check logs
         run: |
