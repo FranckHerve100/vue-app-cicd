@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [18.x]
     name: Setup, test, and build project
     steps:
       - name: Checkout
@@ -49,6 +49,8 @@ jobs:
         env:
           D_USER: ${{secrets.DOCKER_USER}}
           D_PASS: ${{secrets.DOCKER_PASSWORD}}
+          key: ${{ secrets.KEY }}
+
         run: |
           docker login -u $D_USER -p $D_PASS
 
