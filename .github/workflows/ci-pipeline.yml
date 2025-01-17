@@ -8,7 +8,7 @@ on:
 
 env:
   PORT: 5001
-  IMAGE: ${{vars.IMAGE}}:${{github.sha}}
+  IMAGE: your-docker-username/your-image-name:${{github.sha}}
 
 jobs:
   test:
