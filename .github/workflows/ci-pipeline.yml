@@ -8,7 +8,7 @@ on:
 
 env:
   PORT: 5001
-  IMAGE: ${{ vars.IMAGE }}:${{ github.sha }}
+  IMAGE: ${{vars.IMAGE}}:${{github.sha}}
 
 jobs:
   test:
@@ -52,17 +52,19 @@ jobs:
       - name: Authenticate for Docker Hub
         id: docker-auth
         env:
-          D_USER: ${{ secrets.DOCKER_USER }}
-          D_PASS: ${{ secrets.DOCKER_PASSWORD }}
+          D_USER: ${{secrets.DOCKER_USER}}
+          D_PASS: ${{secrets.DOCKER_PASSWORD}}
+          key: ${{ secrets.KEY }}
+
         run: |
           docker login -u $D_USER -p $D_PASS
 
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag ${{ env.IMAGE }}
+        run: docker build . --file Dockerfile --tag vue-app-cicd:$(date +%s)
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push ${{ env.IMAGE }}
+          docker push vue-app-cicd:$(date +%s)
 
       - name: Deploy locally
         run: |
