@@ -61,13 +61,18 @@ jobs:
 
       - name: Build the Docker image
         run: |
-          docker build . --file Dockerfile --tag vue-app-cicd:latest
+          IMAGE_TAG=${{secrets.DOCKER_USER}}/vue-app-cicd:latest
+          docker build . --file Dockerfile --tag $IMAGE_TAG
 
-      
+      - name: List Docker images
+        run: docker images
+
+
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push ${{secrets.DOCKER_USER}}/vue-app-cicd:latest
+          docker push $IMAGE_TAG
+    
 
 
       - name: Deploy locally
