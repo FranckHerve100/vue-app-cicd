@@ -71,7 +71,8 @@ jobs:
 
       - name: Deploy locally
         run: |
-          docker run -d -p $PORT:5001 $IMAGE
+          docker run -d -p $PORT:5001 $IMAGE_TAG
+
 
       - name: Verify deployment
         run: |
