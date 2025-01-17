@@ -50,6 +50,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Authenticate for Docker Hub
+        id: docker-auth
         env:
           D_USER: ${{ secrets.DOCKER_USER }}
           D_PASS: ${{ secrets.DOCKER_PASSWORD }}
@@ -60,7 +61,8 @@ jobs:
         run: docker build . --file Dockerfile --tag ${{ env.IMAGE }}
 
       - name: Push Docker image to Docker Hub
-        run: docker push ${{ env.IMAGE }}
+        run: |
+          docker push ${{ env.IMAGE }}
 
       - name: Deploy locally
         run: |
