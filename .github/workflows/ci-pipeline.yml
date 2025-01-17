@@ -68,9 +68,9 @@ jobs:
         run: |
           docker rm -f vue-app-container || true
 
-          - name: Deploy Docker container locally
-          run: |
-            docker run -d --name vue-app-container -p ${{ env.PORT }}:5001 ${{ env.IMAGE_TAG }}
+      - name: Deploy Docker container locally
+        run: |
+          docker run -d --name vue-app-container -p ${{ env.PORT }}:5001 ${{ env.IMAGE_TAG }}
   
       - name: Wait and check logs
         run: |
