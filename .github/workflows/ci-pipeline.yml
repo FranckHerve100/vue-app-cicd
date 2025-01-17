@@ -8,7 +8,7 @@ on:
 
 env:
   PORT: 5001
-  IMAGE: ${{vars.IMAGE}}:${{github.sha}}
+  IMAGE_TAG: ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest  # Tag statique pour Docker
 
 jobs:
   test:
@@ -18,10 +18,10 @@ jobs:
         node-version: [18.x]
     name: Setup, test, and build project
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
@@ -30,13 +30,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test application
+      - name: Run tests
         run: npm test
 
-      - name: Génération du rapport PDF
-        run: node generate-pdf.js
+      - name: Generate PDF report
+        run: |
+          node generate-pdf.js --no-sandbox
 
-  build:
+  build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
     permissions:
@@ -44,38 +45,34 @@ jobs:
       packages: write
       id-token: write
 
-    name: Setup project, Authorize GitHub Actions to Docker Hub, and build image
+    name: Build and deploy Docker container locally
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Authenticate for Docker Hub
-        id: docker-auth
+      - name: Authenticate with Docker Hub
         env:
-          D_USER: ${{secrets.DOCKER_USER}}
-          D_PASS: ${{secrets.DOCKER_PASSWORD}}
-          key: ${{ secrets.KEY }}
-
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          docker login -u $D_USER -p $D_PASS
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
 
-      - name: Build the Docker image
+      - name: Build Docker image
         run: |
-          IMAGE_TAG=${{secrets.DOCKER_USER}}/vue-app-cicd:${{github.sha}}
-          docker build . --file Dockerfile --tag $IMAGE_TAG
+          docker build . --file Dockerfile --tag ${{ env.IMAGE_TAG }}
 
       - name: List Docker images
         run: docker images
 
-
-
-      - name: Deploy locally
+      - name: Remove existing container (if any)
         run: |
-          docker run -d -p $PORT:5001 $IMAGE_TAG
+          docker rm -f vue-app-container || true
 
+      - name: Deploy Docker container locally
+        run: |
+          docker run -d --name vue-app-container -p ${{ env.PORT }}:5001 ${{ env.IMAGE_TAG }}
 
       - name: Verify deployment
         run: |
-          echo "Checking if the application is running"
-          curl -I http://localhost:$PORT
-
+          echo "Checking if the application is running..."
+          curl -I http://localhost:${{ env.PORT }}
