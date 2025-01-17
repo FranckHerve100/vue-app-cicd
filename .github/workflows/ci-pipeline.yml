@@ -61,12 +61,13 @@ jobs:
 
       - name: Build the Docker image
         run: |
-          TAG=$(date +%s)
+          TAG=${{ github.sha }}
           docker build . --file Dockerfile --tag vue-app-cicd:$TAG
-
+      
       - name: Push Docker image to Docker Hub
         run: |
           docker push vue-app-cicd:$TAG
+
 
 
       - name: Deploy locally
