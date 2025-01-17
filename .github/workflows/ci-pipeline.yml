@@ -59,17 +59,15 @@ jobs:
         run: |
           docker login -u $D_USER -p $D_PASS
 
-      - name: Push Docker image to Docker Hub
+      - name: Build the Docker image
         run: |
-          docker push ${{secrets.DOCKER_USER}}/vue-app-cicd:latest
+          docker build . --file Dockerfile --tag vue-app-cicd:latest
 
       
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push vue-app-cicd:latest
-
-
+          docker push ${{secrets.DOCKER_USER}}/vue-app-cicd:latest
 
 
       - name: Deploy locally
