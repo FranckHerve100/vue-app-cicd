@@ -1,7 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: Construction du projet
 
 on:
   push:
@@ -9,23 +6,66 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  PORT: 5001
+  IMAGE: ${{vars.IMAGE}}:${{github.sha}}
+
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
+    name: Setup, test, and build project
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test application
+        run: npm test
+
+      - name: Génération du rapport PDF
+        run: node generate-pdf.js
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Setup project, Authorize GitHub Actions to Docker Hub, and build image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate for Docker Hub
+        id: docker-auth
+        env:
+          D_USER: ${{secrets.DOCKER_USER}}
+          D_PASS: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $D_USER -p $D_PASS
+
+      - name: Build and tag Image
+        run: |
+          docker build -t ${{env.IMAGE}} .
+
+      - name: Push the image to Docker Hub
+        run: |
+          docker push ${{env.IMAGE}}
+
+      - name: Deploy locally
+        run: |
+          echo "Starting local server"
+          nohup npm start &
+
+      - name: Verify deployment
+        run: |
+          echo "Checking if the application is running"
+          curl -I http://localhost:$PORT
