@@ -74,5 +74,8 @@ jobs:
 
       - name: Verify deployment
         run: |
+          echo "Waiting for the application to start..."
+          sleep 10
           echo "Checking if the application is running..."
           curl -I http://localhost:${{ env.PORT }}
+        
