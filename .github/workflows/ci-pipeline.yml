@@ -1,10 +1,11 @@
-name: Construction du projet
-
+name: CD Pipeline to Docker Hub (staging and production)
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch: {}
+  release:
+    types: published
 
 env:
   PORT: 5001
@@ -13,19 +14,10 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
     name: Setup, test, and build project
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: npm ci
@@ -33,54 +25,26 @@ jobs:
       - name: Test application
         run: npm test
 
-      - name: Génération du rapport PDF
-        run: node generate-pdf.js
-
   build:
     needs: test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-
-    name: Setup project, Authorize GitHub Actions to Docker Hub, and build image
+    name: Setup project, Authorize GitHub Actions to Docker Hub, and deploy
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Authenticate for Docker Hub
         id: docker-auth
         env:
           D_USER: ${{secrets.DOCKER_USER}}
           D_PASS: ${{secrets.DOCKER_PASSWORD}}
-          key: ${{ secrets.KEY }}
-
         run: |
           docker login -u $D_USER -p $D_PASS
-
-      - name: Build the Docker image
+      
+      - name: Build and tag Image
         run: |
-          IMAGE_TAG=${{secrets.DOCKER_USER}}/vue-app-cicd:latest
-          docker build . --file Dockerfile --tag $IMAGE_TAG
-
-      - name: List Docker images
-        run: docker images
-
-
-
-      - name: Push Docker image to Docker Hub
+          docker build -t ${{env.IMAGE}} .
+      
+      - name: Push the image to Docker hub
         run: |
-          docker push $IMAGE_TAG
-    
-
-
-      - name: Deploy locally
-        run: |
-          echo "Starting local server"
-          nohup npm start &
-
-      - name: Verify deployment
-        run: |
-          echo "Checking if the application is running"
-          curl -I http://localhost:$PORT
+          docker push ${{env.IMAGE}}
