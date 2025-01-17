@@ -69,18 +69,12 @@ jobs:
 
 
 
-      - name: Push Docker image to Docker Hub
-        run: |
-          docker push $IMAGE_TAG
-    
-
-
       - name: Deploy locally
         run: |
-          echo "Starting local server"
-          nohup npm start &
+          docker run -d -p $PORT:5001 $IMAGE
 
       - name: Verify deployment
         run: |
           echo "Checking if the application is running"
           curl -I http://localhost:$PORT
+
