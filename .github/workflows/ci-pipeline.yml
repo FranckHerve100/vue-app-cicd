@@ -42,6 +42,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     name: Setup project, Authorize GitHub Actions to Docker Hub, and build image
     steps:
@@ -58,13 +59,12 @@ jobs:
         run: |
           docker login -u $D_USER -p $D_PASS
 
-      - name: Build and tag Image
-        run: |
-          docker build -t ${{env.IMAGE}} .
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
 
       - name: Push the image to Docker Hub
         run: |
-          docker push ${{env.IMAGE}}
+          docker push my-image-name:$(date +%s)
 
       - name: Deploy locally
         run: |
