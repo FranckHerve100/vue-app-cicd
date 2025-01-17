@@ -39,6 +39,10 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     name: Setup project, Authorize GitHub Actions to Docker Hub, and build image
     steps:
       - name: Checkout
