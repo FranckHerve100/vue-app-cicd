@@ -66,9 +66,9 @@ jobs:
         run: |
           echo "${{ vars.KEY }}" > private_key
           chmod 600 private_key
-          ssh -i private_key -o StrictHostKeyChecking=no user@your-local-ip << 'EOF'
+          ssh -i private_key -o StrictHostKeyChecking=no genif@192.168.1.213 << 'EOF'
             docker pull ${{ vars.KEY }}/vue-app-cicd:latest
-            cd /path/to/your/docker-compose/project
+            /home/genif/vue-app-cicd/
             docker-compose down
             docker-compose up --build -d
             exit
