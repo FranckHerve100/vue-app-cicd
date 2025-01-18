@@ -50,6 +50,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
     
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+    
       - name: Deploy using Docker Compose
         run: |
           docker-compose down  # Arrête et supprime les conteneurs existants
@@ -61,4 +66,4 @@ jobs:
           sleep 20
           echo "Checking if the application is running..."
           curl -I http://localhost:5173
-    
+
