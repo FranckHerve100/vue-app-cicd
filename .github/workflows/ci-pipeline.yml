@@ -44,43 +44,21 @@ jobs:
       contents: read
       packages: write
       id-token: write
-
-    name: Build and deploy Docker container locally
+    
+    name: Build and deploy Docker container locally using Docker Compose
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Authenticate with Docker Hub
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_USER }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    
+      - name: Deploy using Docker Compose
         run: |
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
-
-      - name: Build Docker image
-        run: |
-          docker build . --file Dockerfile --tag ${{ env.IMAGE_TAG }}
-
-      - name: List Docker images
-        run: docker images
-
-      - name: Remove existing container (if any)
-        run: |
-          docker rm -f vue-app-container || true
-
-      - name: Deploy Docker container locally
-        run: |
-          docker run -d --name vue-app-container -p ${{ env.PORT }}:5173 ${{ env.IMAGE_TAG }}
-  
-      - name: Wait and check logs
+          docker-compose down  # Arrête et supprime les conteneurs existants
+          docker-compose up --build -d  # Construit l'image et démarre les conteneurs en arrière-plan
+    
+      - name: Verify deployment
         run: |
           echo "Waiting for the application to start..."
           sleep 20
-          echo "Checking application logs..."
-          docker logs vue-app-container
-
-      - name: Verify deployment
-        run: |
           echo "Checking if the application is running..."
-          curl -I http://localhost:${{ env.PORT }}
-  
+          curl -I http://localhost:5173
+    
