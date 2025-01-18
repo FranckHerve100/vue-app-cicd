@@ -79,7 +79,7 @@ jobs:
           docker rm vue-app-cicd || true
           
           # Démarrer le nouveau conteneur
-          docker run -d --name vue-app-cicd -p 5173:80 franckherve100/vue-app-cicd:latest
+          docker run -d --name vue-app-cicd -p 5173:5173 franckherve100/vue-app-cicd:latest
           
           # Vérifiez que le conteneur est en cours d'exécution
           echo "Liste des conteneurs Docker en cours d'exécution :"
