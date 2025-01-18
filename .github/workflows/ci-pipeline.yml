@@ -67,3 +67,7 @@ jobs:
           echo "Checking if the application is running..."
           curl -I http://localhost:5173
 
+      - name: Show logs
+        run: docker-compose logs
+        
+
