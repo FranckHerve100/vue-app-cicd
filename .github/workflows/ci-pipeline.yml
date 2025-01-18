@@ -64,10 +64,16 @@ jobs:
 
       - name: Deploy on Local Machine via SSH
         run: |
-          echo "${{ secrets.PRIVATE_KEY }}" > private_key  # Assurez-vous de stocker votre clé privée en tant que secret GitHub
-          chmod 600 private_key  # Sécurisez la clé privée
-          # Utilisez l'option -T pour ne pas allouer de pseudo-terminal et éviter le mot de passe
-          ssh -i private_key -o StrictHostKeyChecking=no -T genif@192.168.1.213 << 'EOF'
+          # Créer le répertoire SSH et y stocker la clé privée de manière sécurisée
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/private_key  # La clé privée est stockée dans GitHub Secrets
+          chmod 600 ~/.ssh/private_key  # Sécuriser la clé privée
+      
+          # Ajouter l'hôte distant à known_hosts pour éviter les questions de vérification de l'hôte
+          ssh-keyscan -H 192.168.1.213 >> ~/.ssh/known_hosts
+      
+          # Utiliser la clé privée pour se connecter via SSH et déployer avec Docker Compose
+          ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no -T genif@192.168.1.213 << 'EOF'
             docker pull ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
             cd /home/genif/vue-app-cicd/
             docker-compose down
@@ -79,7 +85,7 @@ jobs:
 
       - name: Verify deployment on local machine
         run: |
-          ssh -i private_key -o StrictHostKeyChecking=no genif@192.168.1.213 << 'EOF'
+          ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no -T genif@192.168.1.213 << 'EOF'
             echo "Checking if the application is running on local machine..."
             curl -I http://localhost:5173
             exit
