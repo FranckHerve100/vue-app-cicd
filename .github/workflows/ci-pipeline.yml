@@ -64,13 +64,21 @@ jobs:
 
       - name: Deploy on Local Machine via SSH
         run: |
-          # Créer le répertoire SSH et y stocker la clé privée de manière sécurisée
+          # Créer le répertoire SSH s'il n'existe pas et afficher le contenu pour le débogage
           mkdir -p ~/.ssh
+          echo "Clé privée dans GitHub Secrets" 
           echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/private_key  # La clé privée est stockée dans GitHub Secrets
+          ls -l ~/.ssh  # Afficher les fichiers dans le répertoire ~/.ssh pour le débogage
           chmod 600 ~/.ssh/private_key  # Sécuriser la clé privée
+      
+          # Vérifier que le fichier de clé privée est bien créé et accessible
+          cat ~/.ssh/private_key  # Afficher le contenu de la clé privée pour le débogage (attention à la confidentialité)
       
           # Ajouter l'hôte distant à known_hosts pour éviter les questions de vérification de l'hôte
           ssh-keyscan -H 192.168.1.213 >> ~/.ssh/known_hosts
+      
+          # Vérifier si le fichier known_hosts est bien mis à jour
+          ls -l ~/.ssh/known_hosts  # Afficher les fichiers pour le débogage
       
           # Utiliser la clé privée pour se connecter via SSH et déployer avec Docker Compose
           ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no -T genif@192.168.1.213 << 'EOF'
@@ -81,6 +89,7 @@ jobs:
             exit
           EOF
         shell: /usr/bin/bash -e {0}
+      
       
 
       - name: Verify deployment on local machine
