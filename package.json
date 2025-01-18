@@ -15,18 +15,17 @@
   "jest": {
     "testEnvironment": "jsdom",
     "reporters": [
-    "default",
-    [
-      "jest-html-reporter",
-      {
-        "pageTitle": "Test Report",
-        "outputPath": "./reports/test-report.html",
-        "includeFailureMsg": true,
-        "includeConsoleLog": true
-      }
+      "default",
+      [
+        "jest-html-reporter",
+        {
+          "pageTitle": "Test Report",
+          "outputPath": "./reports/test-report.html",
+          "includeFailureMsg": true,
+          "includeConsoleLog": true
+        }
+      ]
     ]
-  ]
-
   },
   "dependencies": {
     "json-server": "^1.0.0-beta.3",

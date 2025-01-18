@@ -5,7 +5,7 @@ services:
     build:
       context: .  # Répertoire courant contenant le Dockerfile
       dockerfile: Dockerfile  # Spécifie le Dockerfile à utiliser
-    image: vue-app-cicd:local  # Nom de l'image à créer
+    image: vue-app-cicd:latest  # Nom de l'image à créer
     ports:
       - "5173:5173"
     environment:
