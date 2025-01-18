@@ -62,41 +62,36 @@ jobs:
       - name: Push Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
 
-      - name: Deploy on Local Machine via SSH
+      - name: Deploy and Verify Docker Container Locally
         run: |
-          # Créer le répertoire SSH s'il n'existe pas et afficher le contenu pour le débogage
-          mkdir -p ~/.ssh
-          echo "Clé privée dans GitHub Secrets" 
-          echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/private_key  # La clé privée est stockée dans GitHub Secrets
-          ls -l ~/.ssh  # Afficher les fichiers dans le répertoire ~/.ssh pour le débogage
-          chmod 600 ~/.ssh/private_key  # Sécuriser la clé privée
+          # Assurez-vous que Docker est installé et en cours d'exécution sur votre machine locale
+          docker --version
       
-          # Vérifier que le fichier de clé privée est bien créé et accessible
-          cat ~/.ssh/private_key  # Afficher le contenu de la clé privée pour le débogage (attention à la confidentialité)
+          # Pull la dernière image depuis Docker Hub
+          docker pull franckherve100/vue-app-cicd:latest
+          
+          # Afficher la liste des images Docker disponibles pour vérifier le pull
+          echo "Liste des images Docker disponibles :"
+          docker images
+          
+          # Arrêter et supprimer les conteneurs existants (si nécessaire)
+          docker stop vue-app-cicd || true
+          docker rm vue-app-cicd || true
+          
+          # Démarrer le nouveau conteneur
+          docker run -d --name vue-app-cicd -p 5173:80 franckherve100/vue-app-cicd:latest
+          
+          # Vérifiez que le conteneur est en cours d'exécution
+          echo "Liste des conteneurs Docker en cours d'exécution :"
+          docker ps
+          
+          # Effectuer une vérification pour voir si l'application est accessible
+          echo "Vérification de l'application en local..."
+          if curl -s http://localhost:5173 | grep -q "Bienvenue"; then
+            echo "L'application fonctionne correctement !"
+          else
+            echo "Erreur : L'application ne répond pas comme prévu."
+            exit 1
+          fi
+        shell: bash
       
-          # Ajouter l'hôte distant à known_hosts pour éviter les questions de vérification de l'hôte
-          ssh-keyscan -H 192.168.1.213 >> ~/.ssh/known_hosts
-      
-          # Vérifier si le fichier known_hosts est bien mis à jour
-          ls -l ~/.ssh/known_hosts  # Afficher les fichiers pour le débogage
-      
-          # Utiliser la clé privée pour se connecter via SSH et déployer avec Docker Compose
-          ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no -T genif@192.168.1.213 << 'EOF'
-            docker pull ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
-            cd /home/genif/vue-app-cicd/
-            docker-compose down
-            docker-compose up --build -d
-            exit
-          EOF
-        shell: /usr/bin/bash -e {0}
-      
-      
-
-      - name: Verify deployment on local machine
-        run: |
-          ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no -T genif@192.168.1.213 << 'EOF'
-            echo "Checking if the application is running on local machine..."
-            curl -I http://localhost:5173
-            exit
-          EOF
-
