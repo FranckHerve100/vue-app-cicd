@@ -45,15 +45,10 @@ jobs:
       packages: write
       id-token: write
 
-    name: Build and deploy Docker container locally using Docker Compose
+    name: Build and deploy Docker container locally using SSH
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
 
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest .
@@ -67,17 +62,23 @@ jobs:
       - name: Push Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
 
-      - name: Deploy using Docker Compose
+      - name: Deploy on Local Machine via SSH
         run: |
-          docker-compose down
-          docker-compose up --build -d
+          echo "${{ vars.KEY }}" > private_key
+          chmod 600 private_key
+          ssh -i private_key -o StrictHostKeyChecking=no user@your-local-ip << 'EOF'
+            docker pull ${{ vars.KEY }}/vue-app-cicd:latest
+            cd /path/to/your/docker-compose/project
+            docker-compose down
+            docker-compose up --build -d
+            exit
+          EOF
 
-      - name: Verify deployment
+      - name: Verify deployment on local machine
         run: |
-          echo "Waiting for the application to start..."
-          sleep 20
-          echo "Checking if the application is running..."
-          curl -I http://localhost:5173
+          ssh -i private_key -o StrictHostKeyChecking=no genif@192.168.1.213 << 'EOF'
+            echo "Checking if the application is running on local machine..."
+            curl -I http://localhost:5173
+            exit
+          EOF
 
-      - name: Show logs
-        run: docker-compose logs
