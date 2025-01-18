@@ -64,8 +64,9 @@ jobs:
 
       - name: Deploy on Local Machine via SSH
         run: |
-          echo "${{ vars.KEY }}" > private_key
-          chmod 600 private_key
+          echo "${{ secrets.PRIVATE_KEY }}" > private_key  # Assurez-vous de stocker votre clé privée en tant que secret GitHub
+          chmod 600 private_key  # Sécurisez la clé privée
+          # Utilisez l'option -T pour ne pas allouer de pseudo-terminal et éviter le mot de passe
           ssh -i private_key -o StrictHostKeyChecking=no -T genif@192.168.1.213 << 'EOF'
             docker pull ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
             cd /home/genif/vue-app-cicd/
@@ -73,6 +74,7 @@ jobs:
             docker-compose up --build -d
             exit
           EOF
+        shell: /usr/bin/bash -e {0}
       
 
       - name: Verify deployment on local machine
