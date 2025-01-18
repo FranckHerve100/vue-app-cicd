@@ -2,8 +2,11 @@ import puppeteer from 'puppeteer'; // Import de Puppeteer
 import fs from 'fs'; // Import du module fs pour lire les fichiers
 
 async function generatePDF() {
-  // Lance Puppeteer
-  const browser = await puppeteer.launch();
+  // Lance Puppeteer avec l'option --no-sandbox
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] // Désactive le sandboxing
+  });
+  
   const page = await browser.newPage();
 
   // Charge le rapport HTML généré (à ajuster avec votre propre chemin)
