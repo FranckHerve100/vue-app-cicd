@@ -55,10 +55,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest .
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
+
       - name: Deploy using Docker Compose
         run: |
-          docker-compose down  # Arrête et supprime les conteneurs existants
-          docker-compose up --build -d  # Construit l'image et démarre les conteneurs en arrière-plan
+          docker-compose down
+          docker-compose up --build -d
 
       - name: Verify deployment
         run: |
@@ -69,5 +81,3 @@ jobs:
 
       - name: Show logs
         run: docker-compose logs
-        
-
