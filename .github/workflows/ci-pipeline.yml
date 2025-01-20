@@ -99,7 +99,7 @@ jobs:
       - name: Récupérer les logs de déploiement
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku logs --app vue-app-cicd-1 -n 100 > deployment-logs.txt
+        run: heroku logs -n 100 --app vue-app-cicd-1 > deployment-logs.txt
 
       - name: Sauvegarder les logs comme artifact
         uses: actions/upload-artifact@v3
