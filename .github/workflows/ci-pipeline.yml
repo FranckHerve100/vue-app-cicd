@@ -37,6 +37,12 @@ jobs:
         run: |
           node generate-pdf.js --no-sandbox
 
+      - name: Sauvegarder le PDF généré comme artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: ./reports/test-report.pdf # Remplace par le chemin réel du fichier PDF
+
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -84,5 +90,12 @@ jobs:
         run: |
           heroku container:push web --app vue-app-cicd-1
           heroku container:release web --app vue-app-cicd-1
-
-
+          
+  logs-and-email:
+    needs: deploy
+    runs-on: ubuntu-latest
+    name: Collecter les logs et envoyer un email
+    steps:
+      - name: Récupérer les logs du déploiement
+        run: heroku logs --app vue-app-cicd-1 -n 100 > deployment-logs.txt
+        
