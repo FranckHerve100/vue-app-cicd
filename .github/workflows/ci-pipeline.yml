@@ -1,4 +1,4 @@
-name: Construction du projet
+name: Construction du projet et déploiement
 
 on:
   push:
@@ -16,82 +16,63 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x]
-    name: Setup, test, and build project
+    name: Configuration, tests, et construction du projet
     steps:
-      - name: Checkout repository
+      - name: Récupérer le dépôt
         uses: actions/checkout@v4
 
-      - name: Set up Node.js ${{ matrix.node-version }}
+      - name: Configurer Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Installer les dépendances
         run: npm ci
 
-      - name: Run tests
+      - name: Exécuter les tests
         run: npm test
 
-      - name: Generate PDF report
+      - name: Générer le rapport PDF
         run: |
           node generate-pdf.js --no-sandbox
 
-  build-and-deploy:
+  build:
     needs: test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-
-    name: Build and deploy Docker container locally using SSH
+    name: Construire et pousser l'image Docker
     steps:
-      - name: Checkout repository
+      - name: Récupérer le dépôt
         uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Construire l'image Docker
         run: docker build -t ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest .
 
-      - name: Log in to Docker Hub
+      - name: Connexion à Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push Docker image to Docker Hub
+      - name: Pousser l'image Docker sur Docker Hub
         run: docker push ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
 
-      - name: Deploy and Verify Docker Container Locally
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Déployer sur Heroku
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Connexion à Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "vue-app-cicd" # Nom de votre application Heroku
+          heroku_email: "franckytchana08@gmail.com"
+
+      - name: Pousser et déployer l'image Docker sur Heroku
         run: |
-          # Assurez-vous que Docker est installé et en cours d'exécution sur votre machine locale
-          docker --version
-      
-          # Pull la dernière image depuis Docker Hub
-          docker pull franckherve100/vue-app-cicd:latest
-          
-          # Afficher la liste des images Docker disponibles pour vérifier le pull
-          echo "Liste des images Docker disponibles :"
-          docker images
-          
-          # Arrêter et supprimer les conteneurs existants (si nécessaire)
-          docker stop vue-app-cicd || true
-          docker rm vue-app-cicd || true
-          
-          # Démarrer le nouveau conteneur
-          docker run -d --name vue-app-cicd -p 5173:5173 franckherve100/vue-app-cicd:latest
-          
-          # Vérifiez que le conteneur est en cours d'exécution
-          echo "Liste des conteneurs Docker en cours d'exécution :"
-          docker ps
-          
-          # Effectuer une vérification pour voir si l'application est accessible
-          echo "Vérification de l'application en local..."
-          if curl -s http://localhost:5173 | grep -q "Bienvenue"; then
-            echo "L'application fonctionne correctement !"
-          else
-            echo "Erreur : L'application ne répond pas comme prévu."
-            exit 1
-          fi
-        shell: bash
-      
+          heroku container:push web --app vue-app-cicd
+          heroku container:release web --app vue-app-cicd
