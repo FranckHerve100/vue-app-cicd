@@ -65,14 +65,17 @@ jobs:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
 
+      - name: Installer le Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
       - name: Connexion à Heroku
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "vue-app-cicd" # Nom de votre application Heroku
-          heroku_email: "franckytchana08@gmail.com"
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
 
       - name: Pousser et déployer l'image Docker sur Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           heroku container:push web --app vue-app-cicd
           heroku container:release web --app vue-app-cicd
