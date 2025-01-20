@@ -96,6 +96,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Collecter les logs
     steps:
+      - name: Installer le Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
       - name: Récupérer les logs de déploiement
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
