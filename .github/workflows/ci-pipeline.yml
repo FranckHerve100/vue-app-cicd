@@ -90,12 +90,19 @@ jobs:
         run: |
           heroku container:push web --app vue-app-cicd-1
           heroku container:release web --app vue-app-cicd-1
-          
-  logs-and-email:
+
+  logs:
     needs: deploy
     runs-on: ubuntu-latest
-    name: Collecter les logs et envoyer un email
+    name: Collecter les logs
     steps:
-      - name: Récupérer les logs du déploiement
+      - name: Récupérer les logs de déploiement
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku logs --app vue-app-cicd-1 -n 100 > deployment-logs.txt
-        
+
+      - name: Sauvegarder les logs comme artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-logs
+          path: deployment-logs.txt
