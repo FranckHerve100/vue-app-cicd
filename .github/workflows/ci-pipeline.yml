@@ -85,9 +85,4 @@ jobs:
           heroku container:push web --app vue-app-cicd-1
           heroku container:release web --app vue-app-cicd-1
 
-      - name: Verifier les logs
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-            heroku logs --tail --app vue-app-cicd-1
 
