@@ -71,26 +71,27 @@ jobs:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
     
+      - name: Télécharger l'image Docker depuis Docker Hub
+        run: docker pull ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest
+    
       - name: Installer le Heroku CLI
         run: curl https://cli-assets.heroku.com/install.sh | sh
     
-      - name: Configurer le stack Heroku sur "container"
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku stack:set container --app vue-app-cicd-1
-        
       - name: Connexion à Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
         
-      - name: Pousser et déployer l'image Docker sur Heroku
+      - name: Taguer l'image Docker pour Heroku
+        run: docker tag ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest registry.heroku.com/vue-app-cicd-1/web
+        
+      - name: Pousser l'image Docker sur Heroku
+        run: docker push registry.heroku.com/vue-app-cicd-1/web
+        
+      - name: Publier l'application sur Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          docker tag ${{ secrets.DOCKER_USER }}/vue-app-cicd:latest registry.heroku.com/vue-app-cicd-1/web
-          docker push registry.heroku.com/vue-app-cicd-1/web
-          heroku container:release web --app vue-app-cicd-1
+        run: heroku container:release web --app vue-app-cicd-1
 
   logs:
     needs: deploy
