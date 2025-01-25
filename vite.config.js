@@ -8,6 +8,6 @@ export default defineConfig({
   server: {
     port: process.env.PORT || 5173,
     host: true, // Permet d'écouter sur toutes les interfaces
-    allowedHosts: ['vue-app-cicd-1-2fdfe77ae104.herokuapp.com'], // Ajoute l'hôte Heroku autorisé
+    allowedHosts: ['vue-app-cicd-1-2fdfe77ae104.herokuapp.com', 'vue-app-cicd-3636e126cc69.herokuapp.com'], // Ajoute l'hôte Heroku autorisé
   }
 })
